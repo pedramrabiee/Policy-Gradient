@@ -3,6 +3,7 @@
 
 \title{Policy Gradient}
 \author{Pedram Rabiee}
+\setcounter{tocdepth}{2}
 
 \begin{document}
 
@@ -12,7 +13,6 @@
 \maketitle
 
 \tableofcontents
-
 
 Remaining:
 From the Policy Gradient Lecture:
@@ -67,7 +67,7 @@ To ensure exploration we generally require that the policy never becomes determi
    \arrayrulecolor{gray}\hline
     $d^\pi(s)$ & Stationary probability of state $s$ under policy $\pi$\\    
     \arrayrulecolor{gray}\hline
-    $\mu$ & Initial state distribution\\
+    $p_0$ & Initial state distribution\\
     \arrayrulecolor{gray}\hline
     $G_t$ & Reward-to-go, starting from time $t$\\
     \arrayrulecolor{gray}\hline
@@ -75,7 +75,7 @@ To ensure exploration we generally require that the policy never becomes determi
     \arrayrulecolor{gray}\hline
     $p_\theta$ & Trajectory distribution parameterized by parameter $\theta$\\
     \arrayrulecolor{gray}\hline
-    $w_{t_1\to t_2}$ & Product of importance sampling ratios from time $t_1$ to $t_2 \ge t_1$ (will be defined in~\Cref{section:pg_off_policy})\\
+    $w_{t_1\to t_2}$ & Product of importance sampling ratios from time $t_1$ to $t_2 \ge t_1$ (will be defined in~\Cref{sec:pg_off_policy})\\
 \end{tabular}
 \end{center}
 
@@ -90,7 +90,7 @@ Consider the following definitions
         %
         0, & \mbox{else},
 \end{cases}\\
-    \eta^\pi(s) &\triangleq \sum_{k=0}^\infty \rho^\pi(s_0\to s, k).
+    \eta^\pi(s) & \triangleq \sum_{s_0} p_0(s_0) \sum_{k=0}^\infty \rho^\pi(s_0\to s, k).
 \end{align*}
 \end{tcolorbox}
 
@@ -113,7 +113,7 @@ Also, consider reward-to-go $G_t$ defined as
 For the trajectory $\tau^{(t)}\triangleq (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_t, a_t, r_t)$, the trajectory distribution $p_\theta$ is defined as
 
 \begin{align*}
-    p_\theta(\tau^{(t)}) \triangleq \mu(s_0)\prod_{t^\prime = 0}^{t-1} \pi_\theta(a_{t^\prime}|s_{t^\prime})P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) \pi_\theta(a_t|s_t)
+    p_\theta(\tau^{(t)}) \triangleq p_0(s_0)\prod_{t^\prime = 0}^{t-1} \pi_\theta(a_{t^\prime}|s_{t^\prime})P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) \pi_\theta(a_t|s_t)
 \end{align*}
 
 Note that for the case where $t = T$, where $T$ is the length of an episode, we may use $\tau$ to refer to $\tau^{(T-1)}$.
@@ -121,7 +121,7 @@ Note that for the case where $t = T$, where $T$ is the length of an episode, we 
 \end{tcolorbox}
 
 
-\subsection{Policy Gradient Derivation}
+\subsection{Policy Gradient Derivation}\label{sec:pg_derivation}
 
 Starting from different objectives, we obtain different policy gradient expressions.\Cref{table:pg_exp} lists two objectives and their corresponding policy gradient expressions.
 \begin{table}[H]
@@ -129,7 +129,7 @@ Starting from different objectives, we obtain different policy gradient expressi
 \begin{tabular}{c c}
   \textbf{Objective:} $J(\theta)$ & \textbf{Objective's Gradient:} $\nabla_\theta J(\theta)$ \\
   \hline
-   $V^{\pi_\theta}(s_0)$ & $\BBE_{a \sim\pi_\theta, s\sim d^{\pi_\theta}}\left[Q^{\pi_\theta}(s,a)\nabla_\theta \log \pi_\theta(a|s)\right]$ \\
+   $\BBE_{s_0\sim p_0}\left[V^{\pi_\theta}(s_0)\right]$ & $\BBE_{a \sim\pi _\theta, s\sim d^{\pi_\theta}}\left[Q^{\pi_\theta}(s,a)\nabla_\theta \log \pi_\theta(a|s)\right]$ \\
    \arrayrulecolor{gray}\hline
     $\sum_{t=0}^{T-1} \BBE_{\tau^{(t)} \sim p_\theta}[r(s_t, a_t)]$ & $\BBE_{\tau^{(T-1)} \sim p_\theta} \left[ \sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t \vert s_t) G_t\right]$ \\  
 \end{tabular}
@@ -137,10 +137,9 @@ Starting from different objectives, we obtain different policy gradient expressi
 \label{table:pg_exp}
 \end{table}
 
-Now, consider the first objective $J(\theta) = V^{\pi_\theta}(s_0)$. First, note that here $s_0$ is assumed to be sampled from an initial state distribution, $\mu(s_0)$.
-It is to be also noted that, the subscript $\theta$ is often times dropped from $\pi$ in the proofs to save space.
+Now, consider the first objective $J(\theta) =\BBE_{s_0\sim p_0}\left[V^{\pi_\theta}(s_0)\right]$. We put forward the proof from~\cite{sutton2018reinforcement}. It is to be noted that, the subscript $\theta$ is often times dropped from $\pi$ in the proofs to save space.
 \begin{tcolorbox}[breakable,enhanced,colback=gray!10!white,colframe=gray!50!black,
-title={Policy Gradient Derivation for $J(\theta) = V^{\pi_\theta}(s_0)$}]
+title={Policy Gradient Derivation for $J(\theta) = \BBE_{s_0\sim p_0}\left[V^{\pi_\theta}(s_0)\right]$}]
 
 We first seek to extend the expression for $\nabla_\theta V^\pi(s)$, for $s\in \SSS$.
 \begin{align*}
@@ -148,7 +147,7 @@ We first seek to extend the expression for $\nabla_\theta V^\pi(s)$, for $s\in \
     % 
     &=\sum_a\left(\nabla_\theta \pi_\theta(a|s)Q^\pi(s,a) + \pi_\theta(a|s)\nabla_\theta Q^\pi(s,a)\right) \\
     % 
-    &= \sum_a\left(\nabla_\theta \pi_\theta(a|s)Q^\pi(s,a) + \pi_\theta(a|s)\nabla_\theta \sum_{s^\prime}P(s^\prime|s,a)[r + V^\pi(s^\prime)]\right)\\
+    &= \sum_a\left(\nabla_\theta \pi_\theta(a|s)Q^\pi(s,a) + \pi_\theta(a|s)\nabla_\theta \sum_{s^\prime}P(s^\prime|s,a)[r(s,a) + V^\pi(s^\prime)]\right)\\
     % 
     &=\sum_a\left(\nabla_\theta \pi_\theta(a|s)Q^\pi(s,a) + \pi_\theta(a|s) \sum_{s^\prime}P(s^\prime|s,a) \nabla_\theta V^\pi(s^\prime)\right)\\
     % 
@@ -167,9 +166,11 @@ We first seek to extend the expression for $\nabla_\theta V^\pi(s)$, for $s\in \
     % 
     &=\sum_{x\in\SSS} \sum_{k=0}^\infty \rho^\pi(s\to x, k)\phi(x).
 \end{align*}
-Now, we substitute $s_0$ for $s$, and later replace the dummy variable $x$ with $s$:
+Now, we derive the expression for $\nabla_\theta J(\theta)$.
 \begin{align*}
-    \nabla V^{\pi}(s_0) &=\sum_{x\in\SSS}\underbrace{\sum_{k=0}^\infty \rho^\pi(s_0\to x, k)}_{=\eta^\pi(x)}\phi(x) \\
+    \nabla_\theta J(\theta) &= \nabla_\theta \BBE_{s_0\sim p_0}\left[V^{\pi}(s_0)\right]\\    
+    &=\sum_{s_0}p_0(s_0)\sum_{s\in\SSS}\sum_{k=0}^\infty \rho^\pi(s_0\to s, k)\phi(x) \\
+    &=\sum_{s\in\SSS} \phi(s)\underbrace{\sum_{s_0}p_0(s_0)\sum_{k=0}^\infty \rho^\pi(s_0\to s, k)}_{=\eta^\pi(s)} \\
     &= \sum_{s}\eta^\pi(s)\phi(s)\\
     &=\underbrace{\sum_{s^\prime}\eta^\pi(s^\prime)}_{=1 \text{ for continuing case}} \sum_{s}\frac{\eta^\pi(s)}{\sum_{s^\prime}\eta^\pi(s^\prime)}\phi(s)\\
     &=\sum_{s}d^\pi(s)\phi(s)\\
@@ -194,8 +195,8 @@ title={Policy Gradient Derivation for $J(\theta) = \sum_{t=0}^{T-1} \BBE_{\tau^{
 \end{align*}
 Now, first take a look at $\nabla_\theta \log p_\theta(\tau^{(t)})$
 \begin{align*}
-\nabla_\theta \log p_\theta(\tau^{(t)}) &= \nabla_\theta \log \left( \mu(s_0)\prod_{t^\prime = 0}^{t-1} \pi_\theta(a_{t^\prime}|s_{t^\prime})P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) \pi_\theta(a_t|s_t)\right)\\
-&= \nabla_\theta \left(\log\mu(s_0)+\sum_{t^\prime = 0}^{t-1} \log \pi_\theta(a_{t^\prime}|s_{t^\prime}) + \log P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) + \log \pi_\theta(a_t|s_t)\right)\\
+\nabla_\theta \log p_\theta(\tau^{(t)}) &= \nabla_\theta \log \left( p_0(s_0)\prod_{t^\prime = 0}^{t-1} \pi_\theta(a_{t^\prime}|s_{t^\prime})P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) \pi_\theta(a_t|s_t)\right)\\
+&= \nabla_\theta \left(\log p_0(s_0)+\sum_{t^\prime = 0}^{t-1} \log \pi_\theta(a_{t^\prime}|s_{t^\prime}) + \log P(s_{t^\prime+1}|s_{t^\prime}, a_{t^\prime}) + \log \pi_\theta(a_t|s_t)\right)\\
 &= \sum_{t^\prime = 0}^{t} \nabla_\theta \log \pi_\theta(a_{t^\prime}|s_{t^\prime}).
 \end{align*}
 Then, we have
@@ -243,12 +244,12 @@ We have
 Thus, in order to prove \eqref{eq:traj_exp}, it is sufficient to show that for arbitrary $t$, $\BBE_{\tau^{(t)} \sim p_\theta}[g_t] = \BBE_{\tau^{(T-1)} \sim p_\theta}[ g_t]$.
 
 \begin{align*}
-\BBE_{\tau^{(T-1)} \sim p_\theta} [g_t]&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} \ldots \int_{s_T} \mu(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t \ds_0 \da_0 \ldots \ds_t \da_t \ldots \ds_T \\
+\BBE_{\tau^{(T-1)} \sim p_\theta} [g_t]&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} \ldots \int_{s_T} p_0(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t \ds_0 \da_0 \ldots \ds_t \da_t \ldots \ds_T \\
 % 
-&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} \mu(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t  \\
+&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} p_0(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t  \\
 &\qquad\qquad\int_{s_{t+1}}\ldots \int_{a_{T-1}} \pi_\theta(a_{T-1} \vert s_{T-1}) \, \da_{T-1} \ldots \da_0 \ds_0 \\
 % 
-&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} \mu(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t\\
+&= \int_{s_0} \int_{a_0} \ldots \int_{s_t} \int_{a_t} p_0(s_0) \pi_\theta(a_0 \vert s_0) \ldots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) g_t\\
 &\qquad \qquad\int_{s_{t+1}} \ldots \int_{a_{T-1}} \pi_\theta(a_{T-1} \vert s_{T-1}) \, \da_{T-1} \ldots \da_0 \ds_0 \\
 % 
 &= \int p_\theta(\tau^{(t)}) g_t \, \dtau^{(t)} = \BBE_{\tau^{(t)} \sim p_\theta}[g_t]
@@ -301,19 +302,19 @@ title={$\BBE_{\tau \sim p_\theta} \left[\nabla_\theta \log \pi_\theta(a_t \vert 
 %
 &= \int p_\theta(\tau) \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \dtau \\
 %
-&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} \int_{a_t} \cdots \int_{s_T} \mu(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \cdots P(s_T \vert s_{T-1}, a_{T-1}) \\
+&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} \int_{a_t} \cdots \int_{s_T} p_0(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \cdots P(s_T \vert s_{T-1}, a_{T-1}) \\
 &\qquad \qquad \qquad \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \, \ds_0 \, \da_0 \cdots \ds_T \\
 %
-&= \int_{s_0} \cdots \int_{s_t} \int_{a_t} \mu(s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \\
+&= \int_{s_0} \cdots \int_{s_t} \int_{a_t} p_0(s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \\
 &\qquad \qquad \qquad \cdots \int_{a_{T-1}} \pi_\theta(a_{T-1} \vert s_{T-1}) \underbrace{\int_{s_T} P(s_T \vert s_{T-1}, a_{T-1})\,\ds_T}_{=1} \, \da_{T-1} \cdots \, \da_0 \, \ds_0 \\
 % 
-&= \int_{s_0} \cdots \int_{s_t} \int_{a_t} \mu(s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \\
+&= \int_{s_0} \cdots \int_{s_t} \int_{a_t} p_0(s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \\
 &\qquad \qquad \qquad \cdots  \underbrace{\int_{a_{T-1}} \pi_\theta(a_{T-1} \vert s_{T-1}) \, \da_{T-1}}_{=1} \,  \cdots \, \da_0 \, \ds_0 \\
 % 
-&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} \int_{a_t} \mu(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \\
+&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} \int_{a_t} p_0(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) \pi_\theta(a_t \vert s_t) \\
 &\qquad \qquad \qquad \nabla_\theta \log \pi_\theta(a_t \vert s_t) b(s_t) \, \da_t \, \ds_t \cdots \da_0 \, \ds_0 \\
 % 
-&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} \mu(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) b(s_t) \\
+&= \int_{s_0} \int_{a_0} \cdots \int_{s_t} p_0(s_0) \pi_\theta(a_0 \vert s_0) \cdots P(s_t \vert s_{t-1}, a_{t-1}) b(s_t) \\
 &\qquad \qquad \qquad \underbrace{\int_{a_t} \pi_\theta(a_t \vert s_t) \nabla_\theta \log \pi_\theta(a_t \vert s_t) \, \da_t}_{=0 \text{ from~\eqref{eq:baseline_proof_lemma}}} \, \ds_t \cdots \da_0 \, \ds_0 \\
 &=0
 \end{align*}
@@ -364,7 +365,7 @@ While this expression provides a general formula for the optimal baseline, in pr
     \item Another informal reasoning can be found 
 \href{https://danieltakeshi.github.io/2017/03/28/going-deeper-into-reinforcement-learning-fundamentals-of-policy-gradients/#:~:text=The%20variance%20is%20approximated%20as%3A
 }{\underline{here}}.
-    \item For a discussion on a more general form of a baseline see~\cref{section:GAE}.
+    \item For a discussion on a more general form of a baseline see~\cref{sec:GAE}.
 \end{itemize}
 
 
@@ -375,7 +376,7 @@ While this expression provides a general formula for the optimal baseline, in pr
 \caption{Vanilla Policy Gradient Algorithm}\label{fig:vanilla}
 \end{figure} 
 
-\subsection{Off-Policy Policy Gradient Using Importance Sampling}\label{section:pg_off_policy}
+\subsection{Off-Policy Policy Gradient Using Importance Sampling}\label{sec:pg_off_policy}
 Assume that instead of having samples collected under $\pi_\theta$, we have samples collected under another policy $\pi_\beta$. In this case, the policy gradient can be expressed in terms of the expectation over the trajectories under $\pi_\beta$ using importance sampling. First, for $t_2 \ge t_1$, define $w_{t_1 \to t_2}$ as
 \begin{align}
 w_{t_1 \to t_2} \triangleq \prod_{t= t_1}^{t_2}
@@ -387,7 +388,7 @@ Next, let $r(\tau)$ denote the sum of reward for trajectory $\tau$, then
 \end{align*}
 where 
 \begin{align*}
-    \frac{p_\theta}{p_\beta} = \frac{\mu(s_0) \prod_{t=0}^{T-1}\pi_\theta(a_t \vert s_t) P(s_{t+1}\vert a_t, s_t)}{\mu(s_0) \prod_{t=0}^{T-1}\pi_\beta(a_t \vert s_t) P(s_{t+1}\vert a_t, s_t)} =
+    \frac{p_\theta}{p_\beta} = \frac{p_0(s_0) \prod_{t=0}^{T-1}\pi_\theta(a_t \vert s_t) P(s_{t+1}\vert a_t, s_t)}{p_0(s_0) \prod_{t=0}^{T-1}\pi_\beta(a_t \vert s_t) P(s_{t+1}\vert a_t, s_t)} =
     \prod_{t=0}^{T-1}
     \frac{\pi_\theta(a_t \vert s_t)}{\pi_\beta(a_t \vert s_t)} = w_{0\to{T-1}}.
 \end{align*}
@@ -442,7 +443,7 @@ This regulizer which is the softmax over the importance weight, adjust the polic
 \newpage
 \section{Actor-Critic}
 
-Another way to reduce variance in policy gradient methods is to use a bootstrapping target. If we replace the advantage function in Vanilla policy gradient with a TD(0)-like target, we obtain the actor-critic algorithm, which reduces the variance at the cost of introducing bias. Similar to the Vanilla policy gradient method, the actor-critic algorithm consists of two networks: one for value-function approximation and one for policy. The difference is that in Vanilla PG, we only use the value network for the baseline, whereas in the actor-critic algorithm, we also use the same network to estimate the return. The policy network is referred to as \textit{the actor} since it interacts with the environment, while the value network, \textit{the critic}, maintains the value of the actions taken by the actor.
+To reduce variance in policy gradient methods, one approach is to employ a bootstrapping target. By replacing the advantage function used in the Vanilla policy gradient with a TD(0)-like target, we arrive at the actor-critic algorithm. This method mitigates variance but introduces bias. Much like the Vanilla policy gradient, the actor-critic algorithm employs two neural networks: one for value-function approximation and another for policy. However, the key distinction lies in the actor-critic's use of the same network to estimate both the baseline and the return, as opposed to Vanilla PG, where the value network serves only as a baseline. The policy network, often referred to as "the actor," interacts with the environment, while the value network, known as "the critic," maintains the value of the actions taken by the actor.
 
 \subsection{Actor-Critic Derivation}
 
@@ -588,11 +589,12 @@ Based on Equation~\eqref{eq:discount_factor_pg_2}, the sole alteration in the ac
 
 \newpage
 
-\section{Algorithms}
-\subsection{GAE: Generalized Advantage Estimation}\label{section:GAE}
+\section{On-Policy Algorithms}
+\subsection{GAE: Generalized Advantage Estimation}\label{sec:GAE}
 \href{https://arxiv.org/abs/1506.02438}{\underline{Link to paper}} | \href{https://arxiv.org/abs/1506.02438}{\underline{Link to code ADD}} 
 
 \vspace{10pt}
+\subsubsection{Preliminaries}
 Consider the definitions in~\Cref{fig:gae_summary}, and the following definition.
 
 \begin{figure}[h]
@@ -609,7 +611,7 @@ The estimator $\hat{A}_t$ is $\gamma$-just if
 \end{align*}
 \end{definition}
 
-A $\gamma$-just advantage function estimator $\hat{A}$ has the property that when it is substituted in place of $A{\pi,\gamma}$ in the policy gradient, it does not introduce any additional bias.
+A $\gamma$-just advantage function estimator $\hat{A}$ has the property that when it is substituted in place of $A^{\pi,\gamma}$ in the policy gradient, it does not introduce any additional bias.
 
 With these definitions, we can present \Cref{prop:GAE_prop}, which give a sufficient condition for $\hat A$ to be $\gamma$-just.
 
@@ -623,26 +625,25 @@ See \cite{schulman2015high} for the proof.
 This implies we can reduce policy gradient variance by subtracting any function of past and current states and past actions as a baseline, without introducing bias.
 
 
-\textbf{Objectives:}
+\subsubsection{Objectives and Approach}
 
-The paper has two main objectives:
+\noindent \textbf{Objectives}:
 
-\begin{enumerate}
+\begin{itemize}
 \item Provide an intuition for a variance reduction scheme in policy gradients.
 
 \item Introduce an advantage function estimator that allows tuning the bias-variance tradeoff using two parameters $\gamma$ and $\lambda$.
+\end{itemize}
 
-\end{enumerate}
-
-\textbf{Approach:}
+\noindent \textbf{Approach}:
 
 The GAE aims to find a lower variance approximation to the true advantage function $A^{\pi}$. It does this in two main ways:
 
-\begin{enumerate}
+\begin{itemize}
 \item Introducing a discount factor $\gamma$ decreases variance at the cost of some bias. The GAE tries to estimate the $\gamma$-discounted advantage $A^{\pi,\gamma}$.
 
 \item The parameter $\lambda$ controls the bias-variance tradeoff in the GAE estimator. Setting $\lambda=1$ gives an unbiased estimate of $A^{\pi,\gamma}$, while lower $\lambda$ reduces variance further but introduces some bias.
-\end{enumerate}
+\end{itemize}
 
 In summary, the GAE provides an advantage function estimator with two knobs - $\gamma$ and $\lambda$ - to tune the bias-variance tradeoff. This enables constructing policy gradient algorithms with reduced variance.
 In this method,
@@ -654,7 +655,7 @@ In this method,
     \item Increasing either $\lambda$ or $\gamma$ reduces bias, but they do so toward different targets, and this reduction in bias comes at the cost of increased variance.
 \end{itemize}
 
-\textbf{GAE Advantage Function:}
+\subsubsection{GAE Advantage Function}
 
 GAE advantage function is equivalent to TD($\lambda$), which is the weighted-sum $n$-step TD errors, weighted by, $\lambda^n$, with $V_\phi^{\pi, \gamma}$ being the value function approximator. Consider the following defintions:
 \begin{align*}
@@ -662,9 +663,8 @@ GAE advantage function is equivalent to TD($\lambda$), which is the weighted-sum
     \hat A_t^{(k)} &\triangleq \sum_{\ell=1}^{k-1} \gamma^{\ell} r_{t+\ell} + \gamma^k V_\phi^{\pi, \gamma}(s_{t+k}) - V_\phi^{\pi, \gamma}(s_t) = \sum_{\ell =0}^{k-1} \gamma^\ell \delta_{t+\ell}.\\
     % \left( \hat A_t^{(1)} + \lambda \hat A_t^{(2)} + \lambda^2 \hat A_t^{(3)} + \cdots \right)
 \end{align*}
-\begin{itemize}
-     \item Infinite-horizon Case:
-\end{itemize}
+
+\noindent\textbf{Infinite-horizon Case}
 
 \begin{align*}
     \hat A_t^{\rm{GAE}(\gamma,\lambda)} &\triangleq (1-\lambda) \sum_{\ell = 0}^\infty \lambda^{\ell} \hat A_t^{(\ell + 1)}  = \sum_{\ell = 0}^\infty (\gamma \lambda)^{\ell} \delta_{t+\ell}
@@ -681,9 +681,9 @@ Note that
 \end{align*}
 Thus, $\rm{GAE}(\gamma, 1)$ is $\gamma$-just regardless of accuracy of $V_\phi^{\pi, \gamma}$.
 
-\begin{itemize}
-     \item Finite-horizon Case:
-\end{itemize}
+\vspace{10pt}
+\noindent\textbf{Finite-horizon Case}
+
 \begin{align*}
 \hat{A}_t^{\rm GAE} = \delta_t + (\gamma \lambda) \delta_{t+1} + (\gamma \lambda)^2 \delta_{t+2} + \ldots + (\gamma \lambda)^{T-t-1} \delta_{T-1},
 \end{align*}
@@ -692,7 +692,139 @@ and
     \hat A_t^{\rm{GAE}(\gamma,\lambda)} &\triangleq \frac{1 - \lambda}{1 - \lambda^T} \sum_{\ell=0}^{T-1} \lambda^\ell \hat A_t^{(\ell+1)} = \frac{1}{1 - \lambda^T}\sum_{\ell=0}^{T-1} (\gamma \lambda)^\ell \left(1 - \lambda^{T-\ell}\right)\delta_{t+\ell}
 \end{align*}
 
+\newpage
+\section{Off-Policy Algorithms}
+\subsection{DDPG: Deep Deterministic Policy Gradient}\label{sec:DDPG}
+\href{https://arxiv.org/abs/1509.02971}{\underline{Link to paper}} | \href{https://arxiv.org/abs/1509.02971}{\underline{Link to code ADD}} 
 
+\subsubsection{Objectives and Approach}
+\textbf{Objective}:
+\begin{itemize}
+\item Develop a reinforcement learning method for continuous control tasks in which an agent interacts with an environment to learn optimal control policies.
+\item Address the challenge of high-dimensional action spaces and provide a solution for learning effective policies in such environments.
+\end{itemize}
+
+\noindent \textbf{Approach}:
+\begin{itemize}
+\item Utilize a Deep Deterministic Policy Gradient (DDPG) algorithm that combines deep neural networks for both the actor and critic networks, allowing for continuous action spaces and effective policy optimization.
+\item Incorporate experience replay and target networks to stabilize and improve the training process, facilitating the efficient learning of complex control policies in continuous action spaces.
+\end{itemize}
+\subsubsection{DDPG Theory}
+Let's consider the critic $Q^\mu_{\theta^Q}(s, a)$, which is parameterized by $\theta^Q$, and the deterministic actor $\mu_{\theta_\mu}$, parameterized by $\theta_\mu$. The training of the $Q^\mu_{\theta^Q}$ network follows the DQN paradigm as outlined in \cite{mnih2015human}. However, note that the DQN training process is off-policy in nature. Therefore, to construct a fully off-policy actor-critic method, we must have an actor that is trained using off-policy trajectories. To achieve this, we must derive the expression for the off-policy deterministic policy gradient (DPG). Before delving into these details, let's introduce the concept of on-policy DPG from \cite{silver2014deterministic}.
+
+\vspace{10pt}
+\noindent\textbf{On-Policy DPG}
+
+\noindent The objective is defined as follows:
+\begin{align}
+J(\theta^\mu) \triangleq \BBE_{s_0\sim p_0} \left[V^\mu(s_0)\right]
+\end{align}
+This objective is analogous to the one used in stochastic policy gradient methods, with the key distinction that $\mu_{\theta^\mu}(s)$ is a deterministic policy. The on-policy deterministic policy gradient (DPG), as introduced by \cite{silver2014deterministic}, can be expressed as:
+
+\begin{align*}
+\nabla_{\theta^\mu} J(\theta^\mu) \triangleq \BBE_{s \sim d^\mu}\left[\nabla_{a} Q^\mu_{\theta^Q}(s,a)\vert_{a = \mu(s)} \nabla_{\theta^\mu}\mu(s) \right].
+\end{align*}
+
+The proof, which resembles the proof for the stochastic policy gradient but with the replacement of the stochastic policy $\pi(a\vert s)$ by a deterministic policy $\mu(s)$, can be found \href{http://proceedings.mlr.press/v32/silver14-supp.pdf}{\underline{here}}.
+
+\vspace{10pt}
+\noindent\textbf{Off-Policy DPG}
+
+\noindent The objective is defined as follows:
+\begin{align}\label{eq:off_policy_dpg_objective}
+J^\beta(\theta^\mu) = \BBE_{s \sim d^\beta} \left[V^\mu(s)\right],
+\end{align}
+and the off-policy DPG is approximated as:
+\begin{align}\label{eq:off_policy_dpg}
+    \nabla_{\theta^\mu} J^\beta(\theta^\mu) \approx \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a Q^\mu(s,a)\vert_{a=\mu(s)}\Bigg]
+\end{align}
+
+\begin{tcolorbox}[breakable,enhanced,colback=gray!10!white,colframe=gray!50!black,
+title={Off-Policy Deterministic Policy Gradient (Off-Policy DPG)}]
+First, we directly compute the gradient of~\cref{eq:off_policy_dpg_objective}, yielding:
+\begin{align*}
+    \nabla_{\theta^\mu} J^\beta(\theta^\mu) &= \BBE_{s \sim d^\beta} \left[\nabla_{\theta^\mu} V^\mu(s)\right] = \BBE_{s \sim d^\beta} \left[\nabla_{\theta^\mu} Q^\mu(s, \mu(s))\right]\\
+    &=\BBE_{s \sim d^\beta} \left[\nabla_{\theta^\mu} \left[r(s, \mu(s)) + \gamma  \int_\SSS p(s^\prime\vert s, \mu(s)) V^\mu(s^\prime) \rmd s^\prime \right] \right]\\
+    &= \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a r(s,a)\vert_{a=\mu(s)} \\
+    & \hphantom{=\BBE_{s \sim d^\beta}\Bigg[} + \gamma \int_\SSS\Big(p(s^\prime\vert s, \mu(s))\nabla_{\theta^\mu}V^\mu(s^\prime) + \nabla_{\theta^\mu} \mu(s) \nabla_a p(s^\prime\vert s, \mu(s))\vert_{a=\mu(s)} V^\mu(s^\prime) \Big)\rmd s^\prime \Bigg]\\
+    &= \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a \Bigg(r(s,a) + \gamma \int_\SSS p(s^\prime\vert s, \mu(s)) V^\mu(s^\prime)\rmd s^\prime\Bigg)\Bigg\vert_{a=\mu(s)}+ \gamma \int_\SSS p(s^\prime\vert s, \mu(s))\nabla_{\theta^\mu}V^\mu(s^\prime) \rmd s^\prime\Bigg]\\
+    &= \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a Q^\mu(s,a)\vert_{a=\mu(s)}+ \gamma \int_\SSS p(s^\prime\vert s, \mu(s))\nabla_{\theta^\mu}V^\mu(s^\prime) \rmd s^\prime\Bigg]
+\end{align*}
+In the on-policy case, we maintain the expansion of the $V^\mu(s^\prime)$ terms as they occur. In contrast, within the off-policy case, we introduce an approximation by considering only the initial term. As a result, the approximated policy gradient is formulated as~\eqref{eq:off_policy_dpg}
+\end{tcolorbox}
+
+
+
+
+\subsubsection{DDPG Algorithm}
+\begin{algorithm}
+\caption{DDPG algorithm}
+\begin{algorithmic}[h!]
+\State Randomly initialize critic network $Q(s,a|\theta^{Q})$ and actor $\mu(s|\theta^{\mu})$ with weights $\theta^{Q}$ and $\theta^{\mu}$
+\State Initialize target network $Q'$ and $\mu'$ with weights $\theta^{Q'} \gets \theta^{Q}, \theta^{\mu'} \gets \theta^{\mu}$
+\State Initialize replay buffer $\mathcal{R}$
+\For{episode $= 1, M$}
+
+\State Initialize a random process $\mathcal{N}$ for action exploration
+\State Receive initial observation state $s_{1}$
+\For{$t = 1, T$}
+\State Select action $a_{t} = \mu(s_{t}|\theta^{\mu}) + \mathcal{N}_{t}$ according to current policy and exploration noise
+\State Execute action $a{t}$ and observe reward $r_{t}$ and new state $s_{t+1}$
+\State Store transition $(s_{t}, a_{t}, r_{t}, s_{t+1})$ in $\mathcal{R}$
+\State Sample random minibatch of $N$ transitions $(s_{i}, a_{i}, r_{i}, s_{i+1})$ from $\mathcal{R}$
+\State Set $y_{i} = r_{i} + \gamma Q'(s_{i+1}, \mu'(s_{i+1}|\theta^{\mu'})|\theta^{Q'})$
+\State Update critic by minimizing the loss: $L = \frac{1}{N}\sum_{i}(y_{i} - Q(s_{i}, a_{i}|\theta^{Q}))^2$
+\State Update the actor policy using sampled policy gradient: $$\nabla_{\theta^{\mu}} J \approx \frac{1}{N}\sum_{i} \nabla_{a}Q(s, a|\theta^{Q})|_{{s=s_{i},a=\mu(s_{i})}} \nabla_{\theta^{\mu}} \mu(s|\theta^{\mu})|_{s_{i}}$$
+
+\State Update target networks:
+$$\theta^{Q'} \gets \tau \theta^{Q} + (1 - \tau)\theta^{Q'}$$
+$$\theta^{\mu'} \gets \tau \theta^{\mu} + (1 - \tau)\theta^{\mu'}$$
+\EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Stabilizing Learning}
+DDPG makes several tweaks to stabilize training with neural networks:
+
+\begin{itemize}
+\item \textbf{Use replay buffer}: Store transitions in a replay buffer. Sample mini-batches for training.
+
+\item \textbf{Use soft target update}: Use separate slowly-updating target networks $Q'$ and $\mu'$ to calculate the target Q values during Bellman updates. This provides more consistent targets during temporal difference learning.
+
+\item \textbf{Use batch minimization}: To address varying units and ranges in low-dimensional feature vectors, batch normalization is applied—a deep learning technique normalizing each dimension in minibatches to maintain consistency across environments and unit scales, reducing manual scaling needs. It's used on the state input and all layers of $\mu$-network and $Q$-network before the action input, facilitating effective learning across diverse tasks with different unit types without manual adjustments. This technique also mitigates covariance shift during training.
+
+\item \textbf{Use noise for the policy}: Add temporally correlated noise to the actor policy during exploration to facilitate efficient exploration in environments with momentum. For example, use an Ornstein-Uhlenbeck process rather than white noise.
+\end{itemize}
+
+\subsubsection{Network Specifications}
+\begin{table}[h!]
+\centering
+\begin{tabular}{l|l}
+\textbf{Parameter/Specification} & \textbf{Value} \\
+\hline
+Optimizer & Adam \\
+Learning Rate (Actor) & $10^{-4}$ \\
+Learning Rate (Critic) & $10^{-3}$ \\
+L2 Weight Decay (Q) & $10^{-2}$ \\
+Discount Factor ($\gamma$) & 0.99 \\
+Soft Target Update ($\tau$) & 0.001 \\
+Activation Function & Rectified Non-linearity \\
+Final Output Layer (Actor) & tanh \\
+Hidden Layers (Low-dimensional Networks) & 400 units, 300 units \\
+Actions Included & 2nd Hidden Layer of Q \\
+Minibatch Size (Low-dimensional) & 64 \\
+Replay Buffer Size & $10^6$ \\
+\end{tabular}
+\caption{Neural Network Training Parameters and Specifications}
+\end{table}
+
+\subsection{SAC: Soft Actor-Critic}
+The notion of entropy
+
+The entropy of the unknown result of the next toss of the coin is maximized if the coin is fair (that is, if heads and tails both have equal probability 1/2). This is the situation of maximum uncertainty as it is most difficult to predict the outcome of the next toss; the result of each toss of the coin delivers one full bit of information. This is because
+\href{https://en.wikipedia.org/wiki/Entropy_(information_theory)#:~:text=The%20entropy%20of%20the%20unknown,uncertainty%20and%20therefore%20maximum%20entropy
+}{See example}
 
 \newpage
 \section{Appendix: Basic Statistics}\label{apx:basic_statistics}
@@ -773,7 +905,104 @@ and
     
 
 \end{itemize}
+% \section{Maximum Entropy Method in Reinforcement Learning}
 
+% The Maximum Entropy Method (MaxEnt) is an important framework in reinforcement learning that extends the traditional reinforcement learning setup by considering the concept of entropy. It's particularly useful in cases where you want to find a stochastic policy that not only maximizes expected rewards but also has a certain level of randomness or entropy. This can be helpful in various scenarios, such as in exploration or when dealing with partially observable environments.
+
+% \subsection{Markov Decision Process (MDP)}
+
+% At the core of reinforcement learning, there's an environment modeled as a Markov Decision Process. It's defined by:
+
+% \begin{itemize}
+%   \item A set of states ($S$): The possible situations or configurations of the environment.
+%   \item A set of actions ($A$): The possible actions the agent can take.
+%   \item Transition dynamics ($P$): The probability of transitioning from one state to another after taking a particular action.
+%   \item Reward function ($R$): The immediate reward received after taking a specific action in a given state.
+%   \item Discount factor ($\gamma$): A parameter that determines the agent's preference for immediate rewards over future rewards.
+% \end{itemize}
+
+% \subsection{Policy ($\pi$)}
+
+% A policy is a strategy that the agent uses to select actions in various states. It's typically represented as a probability distribution over actions for each state: $\pi(a|s)$ - the probability of taking action 'a' in state 's'.
+
+% In traditional RL, the objective is often to find a policy that maximizes the expected cumulative reward (return) over time.
+
+% \subsection{Entropy ($H$)}
+
+% Entropy is a measure of the randomness or uncertainty in a probability distribution. In the context of RL, it quantifies how 'random' the policy is. The entropy of a policy $\pi$ is defined as:
+
+% \[
+% H(\pi) = -\sum_{s}\sum_{a} \pi(a|s) \cdot \log(\pi(a|s))
+% \]
+
+% Intuitively, higher entropy policies are more exploratory and distribute their probability mass more evenly across actions.
+
+% \subsection{Objective Function with Maximum Entropy}
+
+% The goal in Maximum Entropy Reinforcement Learning is to find a policy that not only maximizes expected rewards but also maximizes entropy. This is done by optimizing the following objective function:
+
+% \[
+% J(\pi) = \sum_{s}\sum_{a} \pi(a|s) \cdot [Q(s, a) - \alpha \cdot H(\pi)]
+% \]
+
+% Here, $Q(s, a)$ represents the expected cumulative reward of taking action 'a' in state 's', which can be estimated using techniques like Q-learning or policy gradient methods. $\alpha$ is a hyperparameter that controls the trade-off between maximizing rewards and maximizing entropy. A higher $\alpha$ encourages more exploratory behavior.
+
+% \subsection{Maximum Entropy Inverse Reinforcement Learning (MaxEnt IRL)}
+
+% Maximum Entropy Inverse Reinforcement Learning (MaxEnt IRL) is an extension of the MaxEnt framework used for solving the inverse reinforcement learning problem. In MaxEnt IRL, the goal is to infer the underlying reward function of an expert demonstrator from observed behavior. The key idea is to find a reward function such that the expert's behavior is optimal under the derived policy.
+
+% \subsubsection{Objective Function in MaxEnt IRL}
+
+% In MaxEnt IRL, the objective function to be optimized is as follows:
+
+% \[
+% \begin{aligned}
+% & \max_{R} \sum_{t=0}^{T}\left(\sum_{a}\pi^{\ast}(a|s_t) \cdot R(s_t, a) - \alpha \cdot H(\pi^{\ast})\right) \\
+% & \text{subject to:} \quad \pi^{\ast} = \text{argmax}_{\pi} \sum_{t=0}^{T}\left(\sum_{a}\pi(a|s_t) \cdot R(s_t, a) - \alpha \cdot H(\pi)\right)
+% \end{aligned}
+% \]
+
+% Here, $R$ represents the reward function to be learned, $\pi^{\ast}$ is the expert's policy, and $\pi$ is the policy under consideration. The optimization seeks to find a reward function $R$ that aligns with the expert's behavior while maximizing entropy to allow for multiple solutions.
+
+% \subsection{References}
+
+% Inverse reinforcement learning aims to recover the reward function of an expert policy demonstrator. The maximum entropy principle proposes to find the reward function that maximizes the entropy of the induced trajectory distribution, subject to feature matching constraints.
+
+% Let $S$ be the state space, $A$ the action space, $\rho_\pi(s)$ the discounted state visitation frequencies under policy $\pi$, and $f(s,a)$ the feature vector. The feature matching constraints are:
+% \begin{align*}  
+% \mathbb{E}_{\rho_{\pi_E}}[f(s,a)] = \mathbb{E}_{\rho_\pi}[f(s,a)],
+% \end{align*}
+% where $\pi_E$ is the expert policy.
+
+% The trajectory distribution induced by a policy $\pi$ is $p_\pi(\tau) = p(s_0)\prod_{t=0}^{T-1} p(s_{t+1}|s_t,a_t)\pi(a_t|s_t)$. The entropy of this distribution is $H(\pi) = -\sum_\tau p_\pi(\tau)\log p_\pi(\tau)$.
+
+% The maximum entropy inverse RL problem is:
+% \begin{align*}
+% &\max_\pi H(\pi)\\  
+% &\text{s.t. } \mathbb{E}_{\rho_{\pi_E}}[f(s,a)] = \mathbb{E}_{\rho_\pi}[f(s,a)]
+% \end{align*}
+
+% The paper shows that the optimal $\pi^*$ is given by the maximum entropy distribution over trajectories
+% \begin{align*}
+% p^*(\tau) = \frac{1}{Z}\exp(\theta^T f(\tau)), 
+% \end{align*}
+% where $Z$ is the partition function and $\theta$ are the dual variables.
+
+% The optimal policy $\pi^*$ is the maximum entropy policy induced by the reward function $R(s,a) = \theta^T f(s,a)$. The dual variables $\theta$ are found by maximizing the dual function 
+% \begin{align*}
+% g(\theta) = H(\pi^*) + \theta^T\mathbb{E}_{\rho_{\pi_E}}[f(s,a)].
+% \end{align*}
+
+% Let me know if you need any clarification or have additional questions!
+
+% \begin{enumerate}
+%   \item Ziebart, B. D., Maas, A. L., Bagnell, J. A., & Dey, A. K. (2008). Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd national conference on artificial intelligence (pp. 1433-1438).
+%   \item Haarnoja, T., Tang, H., Abbeel, P., & Levine, S. (2017). Reinforcement learning with deep energy-based policies. In Proceedings of the 34th International Conference on Machine Learning.
+% \end{enumerate}
+
+% \end{document}
+
+\newpage
 \bibliographystyle{elsarticle-num} 
 \bibliography{policy_gradient} 
 
