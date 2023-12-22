@@ -1,31 +1,30 @@
 # Policy Gradient
 
-This repository contains a draft document on Policy Gradient in Reinforcement Learning by Pedram Rabiee.
+This repository contains a draft working document on Policy Gradient in Reinforcement Learning by Pedram Rabiee.
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-   1. [Why Policy Gradient?](#why-policy-gradient)
-2. [Raw Policy Gradient](#raw-policy-gradient)
-   1. [Definitions and Notations](#definitions-and-notations)
-   2. [Policy Gradient Derivation](#policy-gradient-derivation)
-   3. [REINFORCE](#reinforce)
-   4. [State-Based Baseline](#state-based-baseline)
-   5. [Vanilla Policy Gradient](#vanilla-policy-gradient)
-   6. [Off-Policy Policy Gradient Using Importance Sampling](#off-policy-policy-gradient-using-importance-sampling)
-3. [Actor-Critic](#actor-critic)
-   1. [Actor-Critic Derivation](#actor-critic-derivation)
-   2. [Discount Factor](#discount-factor)
-   3. [Off-Policy Actor-Critic](#off-policy-actor-critic)
-   4. [Actor-critic implementation notes](#actor-critic-implementation-notes)
-4. [On-Policy Algorithms](#on-policy-algorithms)
-   1. [GAE: Generalized Advantage Estimation](#gae-generalized-advantage-estimation)
-5. [Off-Policy Algorithms](#off-policy-algorithms)
-   1. [DDPG: Deep Deterministic Policy Gradient](#ddpg-deep-deterministic-policy-gradient)
-   2. [SAC: Soft Actor-Critic](#sac-soft-actor-critic)
-6. [Appendix I: Basic Statistics](#appendix-i-basic-statistics)
-7. [Appendix II: Maximum Entropy Principle](#appendix-ii-maximum-entropy-principle)
-
+- Introduction
+   - Why Policy Gradient
+- Raw Policy Gradient
+   - Definitions and Notations
+   - Policy Gradient Derivation
+   - REINFORCE
+   - State-Based Baseline
+   - Vanilla Policy Gradient
+   - Off-Policy Policy Gradient Using Importance Sampling
+- Actor-Critic
+   - Actor-Critic Derivation
+   - Discount Factor
+   - Off-Policy Actor-Critic
+   - Actor-critic implementation notes
+- On-Policy Algorithms
+   - GAE: Generalized Advantage Estimation
+- Off-Policy Algorithms
+   - DDPG: Deep Deterministic Policy Gradient
+   - SAC: Soft Actor-Critic
+- Appendix I: Basic Statistics
+- Appendix II: Maximum Entropy Principle
 
 ## Citation
 
