@@ -1,5 +1,7 @@
 \documentclass{article}
+
 \usepackage{pedramnotes}
+\usepackage{pedramsyms}
 
 \title{Policy Gradient}
 \author{Pedram Rabiee}
@@ -14,12 +16,12 @@
 
 \tableofcontents
 
-Remaining:
-From the Policy Gradient Lecture:
-\begin{itemize}
-    \item Policy Gradient Implementation
-    \item Natural Policy Gradient
-\end{itemize}
+% Remaining:
+% From the Policy Gradient Lecture:
+% \begin{itemize}
+%     \item Policy Gradient Implementation
+%     \item Natural Policy Gradient
+% \end{itemize}
 \end{titlepage}
 
 \newgeometry{top=20mm,bottom=25mm,right=20mm,left=20mm}
@@ -377,7 +379,7 @@ While this expression provides a general formula for the optimal baseline, in pr
 \end{figure} 
 
 \subsection{Off-Policy Policy Gradient Using Importance Sampling}\label{sec:pg_off_policy}
-Assume that instead of having samples collected under $\pi_\theta$, we have samples collected under another policy $\pi_\beta$. In this case, the policy gradient can be expressed in terms of the expectation over the trajectories under $\pi_\beta$ using importance sampling. First, for $t_2 \ge t_1$, define $w_{t_1 \to t_2}$ as
+If we were to collect samples using a policy other than $\pi_\theta$, such as $\pi_\beta$, then the gradient for the policy can be rewritten as the expectation of trajectories under $\pi_\beta$ using importance sampling. Let us first define $w_{t_1 \to t_2}$ for times $t_1$ and $t_2$ where $t_2$ is greater than or equal to $t_1$.
 \begin{align}
 w_{t_1 \to t_2} \triangleq \prod_{t= t_1}^{t_2}
     \frac{\pi_\theta(a_t \vert s_t)}{\pi_\beta(a_t \vert s_t)}.
@@ -397,7 +399,7 @@ Thus,
 \begin{align}\label{eq:off_policy_pg_raw}
     \nabla_\theta J(\theta) = \BBE_{\tau \sim p_\beta} \left[w_{0 \to {T-1}} \left(\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t\vert s_t)\right) \left(\sum_{t=0}^{T-1} r(s_t, a_t)\right) \right]
 \end{align}
-This version of off-policy policy gradient however have high variance.
+This version of off-policy policy gradient however has high variance.
 From here forward, different works, make different estimations of~\eqref{eq:off_policy_pg_raw} in order to reduce the variance.
 
 Causality trick 1: Current action cannot affect the past rewards. Thus, we change the trajectory reward to reward-to-go.
@@ -433,12 +435,12 @@ One way to achive this to introduce regulizer~\cite{levine2013guided,levine2020o
 \end{align*}
 This regulizer which is the softmax over the importance weight, adjust the policy $\pi_\theta$ to ensure that at least one sample has a high importance weight.
 
-\subsection{Policy Gradient Implementation Notes}
+% \subsection{Policy Gradient Implementation Notes}
 
-\begin{enumerate}
-    \item \textcolor{red}{with Automatic Differentiation Tools}
-    \item \textcolor{red}{On normalization}
-\end{enumerate}
+% \begin{enumerate}
+%     \item \textcolor{red}{with Automatic Differentiation Tools}
+%     \item \textcolor{red}{On normalization}
+% \end{enumerate}
 
 \newpage
 \section{Actor-Critic}
@@ -599,10 +601,11 @@ Consider the definitions in~\Cref{fig:gae_summary}, and the following definition
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1.0\linewidth]{Figures/GAE_table.png}
+    \includegraphics[width=1.0\linewidth]{Figures/GAE_table_latex.pdf}
     \caption{Advantage functions definitions and their associated policy gradients}
     \label{fig:gae_summary}
 \end{figure}
+
 
 \begin{definition} 
 The estimator $\hat{A}_t$ is $\gamma$-just if
@@ -725,7 +728,8 @@ This objective is analogous to the one used in stochastic policy gradient method
 \nabla_{\theta^\mu} J(\theta^\mu) \triangleq \BBE_{s \sim d^\mu}\left[\nabla_{a} Q^\mu_{\theta^Q}(s,a)\vert_{a = \mu(s)} \nabla_{\theta^\mu}\mu(s) \right].
 \end{align*}
 
-The proof, which resembles the proof for the stochastic policy gradient but with the replacement of the stochastic policy $\pi(a\vert s)$ by a deterministic policy $\mu(s)$, can be found \href{http://proceedings.mlr.press/v32/silver14-supp.pdf}{\underline{here}}.
+The proof, which resembles the proof for the stochastic policy gradient but with the replacement of the stochastic policy $\pi(a\vert s)$ by a deterministic policy $\mu(s)$, can be found 
+in \href{http://proceedings.mlr.press/v32/silver14-supp.pdf}{\underline{Appendix B}} of~\cite{silver2014deterministic}.
 
 \vspace{10pt}
 \noindent\textbf{Off-Policy DPG}
@@ -750,7 +754,7 @@ First, we directly compute the gradient of~\cref{eq:off_policy_dpg_objective}, y
     &= \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a \Bigg(r(s,a) + \gamma \int_\SSS p(s^\prime\vert s, \mu(s)) V^\mu(s^\prime)\rmd s^\prime\Bigg)\Bigg\vert_{a=\mu(s)}+ \gamma \int_\SSS p(s^\prime\vert s, \mu(s))\nabla_{\theta^\mu}V^\mu(s^\prime) \rmd s^\prime\Bigg]\\
     &= \BBE_{s \sim d^\beta} \Bigg[\nabla_{\theta^\mu} \mu(s) \nabla_a Q^\mu(s,a)\vert_{a=\mu(s)}+ \gamma \int_\SSS p(s^\prime\vert s, \mu(s))\nabla_{\theta^\mu}V^\mu(s^\prime) \rmd s^\prime\Bigg]
 \end{align*}
-In the on-policy case, we maintain the expansion of the $V^\mu(s^\prime)$ terms as they occur. In contrast, within the off-policy case, we introduce an approximation by considering only the initial term. As a result, the approximated policy gradient is formulated as~\eqref{eq:off_policy_dpg}
+In the on-policy case, we maintain the expansion of the $V^\mu(s^\prime)$ terms as they occur (see \href{http://proceedings.mlr.press/v32/silver14-supp.pdf}{\underline{Appendix B}} in~\cite{silver2014deterministic}). In contrast, within the off-policy case, we introduce an approximation by considering only the initial term. As a result, the approximated policy gradient is formulated as~\eqref{eq:off_policy_dpg}
 \end{tcolorbox}
 
 
@@ -792,7 +796,7 @@ DDPG makes several tweaks to stabilize training with neural networks:
 
 \item \textbf{Use soft target update}: Use separate slowly-updating target networks $Q'$ and $\mu'$ to calculate the target Q values during Bellman updates. This provides more consistent targets during temporal difference learning.
 
-\item \textbf{Use batch minimization}: To address varying units and ranges in low-dimensional feature vectors, batch normalization is applied—a deep learning technique normalizing each dimension in minibatches to maintain consistency across environments and unit scales, reducing manual scaling needs. It's used on the state input and all layers of $\mu$-network and $Q$-network before the action input, facilitating effective learning across diverse tasks with different unit types without manual adjustments. This technique also mitigates covariance shift during training.
+\item \textbf{Use batch minimization}: To address varying units and ranges in low-dimensional feature vectors, batch normalization is applied—a deep learning technique normalizing each dimension in mini-batches to maintain consistency across environments and unit scales, reducing manual scaling needs. It's used on the state input and all layers of $\mu$-network and $Q$-network before the action input, facilitating effective learning across diverse tasks with different unit types without manual adjustments. This technique also mitigates covariance shift during training.
 
 \item \textbf{Use noise for the policy}: Add temporally correlated noise to the actor policy during exploration to facilitate efficient exploration in environments with momentum. For example, use an Ornstein-Uhlenbeck process rather than white noise.
 \end{itemize}
@@ -820,14 +824,14 @@ Replay Buffer Size & $10^6$ \\
 \end{table}
 
 \subsection{SAC: Soft Actor-Critic}
-The notion of entropy
 
-The entropy of the unknown result of the next toss of the coin is maximized if the coin is fair (that is, if heads and tails both have equal probability 1/2). This is the situation of maximum uncertainty as it is most difficult to predict the outcome of the next toss; the result of each toss of the coin delivers one full bit of information. This is because
-\href{https://en.wikipedia.org/wiki/Entropy_(information_theory)#:~:text=The%20entropy%20of%20the%20unknown,uncertainty%20and%20therefore%20maximum%20entropy
-}{See example}
+
+
+
+
 
 \newpage
-\section{Appendix: Basic Statistics}\label{apx:basic_statistics}
+\section{Appendix I: Basic Statistics}\label{apx:basic_statistics}
 
 \begin{itemize}
   \item \textbf{Probability:}
@@ -905,102 +909,60 @@ The entropy of the unknown result of the next toss of the coin is maximized if t
     
 
 \end{itemize}
-% \section{Maximum Entropy Method in Reinforcement Learning}
+\section{Appendix II: Maximum Entropy Principle}
 
-% The Maximum Entropy Method (MaxEnt) is an important framework in reinforcement learning that extends the traditional reinforcement learning setup by considering the concept of entropy. It's particularly useful in cases where you want to find a stochastic policy that not only maximizes expected rewards but also has a certain level of randomness or entropy. This can be helpful in various scenarios, such as in exploration or when dealing with partially observable environments.
+\textbf{Maximum Entropy Principle}
 
-% \subsection{Markov Decision Process (MDP)}
+The Maximum Entropy Principle provides a framework for finding probability distributions that are maximally non-committal or, in other words, the least informative given a set of constraints. This principle is particularly useful in situations where we have limited information about a system but wish to make informed probabilistic predictions.
 
-% At the core of reinforcement learning, there's an environment modeled as a Markov Decision Process. It's defined by:
+The Maximum entropy principle can be mathematically expressed as follows:
 
-% \begin{itemize}
-%   \item A set of states ($S$): The possible situations or configurations of the environment.
-%   \item A set of actions ($A$): The possible actions the agent can take.
-%   \item Transition dynamics ($P$): The probability of transitioning from one state to another after taking a particular action.
-%   \item Reward function ($R$): The immediate reward received after taking a specific action in a given state.
-%   \item Discount factor ($\gamma$): A parameter that determines the agent's preference for immediate rewards over future rewards.
-% \end{itemize}
 
-% \subsection{Policy ($\pi$)}
+\begin{subequations}\label{eq:max_entropy_op}
+\begin{align}
+p^*(x) = \argmax_p \quad &\SH_p(x) \label{eq:max_entropy_op.a}\\
+\text{s.t.} \quad & \forall k \in\{1, 2, \ldots, n\}, \quad \BBE_p[f_k(x)] = \tilde f_k \label{eq:max_entropy_op.b}\\
+&\int p(x) \dx = 1 \label{eq:max_entropy_op.c}
+\end{align}
+\end{subequations}
+The solution to~\eqref{eq:max_entropy_op} is 
+\begin{align}
+    p^*(x) = \frac{\exp\left( \sum_{k=1}^n \lambda_k f_k(x) \right)}{\int \exp\left(\sum_{k=1}^n \lambda_k f_k(x)\right)\dx},
+\end{align}
 
-% A policy is a strategy that the agent uses to select actions in various states. It's typically represented as a probability distribution over actions for each state: $\pi(a|s)$ - the probability of taking action 'a' in state 's'.
+\begin{tcolorbox}[breakable,enhanced,colback=gray!10!white,colframe=gray!50!black,
+title={Maximum Entropy Principle Solution}]
+To find the solution to~\eqref{eq:max_entropy_op}, we formulate the Lagrangian associated with~\eqref{eq:max_entropy_op}:
 
-% In traditional RL, the objective is often to find a policy that maximizes the expected cumulative reward (return) over time.
+\begin{align}\label{eq:max_entropy_lagrang}
+    \SL(x, p(x)) &= \int p(x) \ln p(x) \dx - \lambda_0 \left(\int p(x) \dx -1\right) - \sum_{k=1}^n \lambda_k \left(\int p(x) f_k(x) \dx - \tilde f_k\right)\\
+    & =\int \underbrace{ p(x) \left(\ln p(x) - \lambda_0 - \sum_{k=1}^n \lambda_k f_k(x) \right) \dx}_{\triangleq F(x, p(x))} + \lambda_0 + \sum_{k=1}^n \lambda_k \tilde f_k,
+\end{align}
+where $\lambda_0$ and $\lambda_k$ are 
 
-% \subsection{Entropy ($H$)}
+The objective is to find the distribution $p(x)$ that makes~\eqref{eq:max_entropy_lagrang} stationary. Applying the Euler-Lagrange equation we have
+\begin{align*}
+    \pderiv{F(x, p(x))}{p(x)} = 0
+\end{align*}
+Thus,
+\begin{align}
+    &\ln p(x) - \lambda_0 - \sum_{k=1}^n \lambda_k f_k(x) + 1 = 0\nn\\
+    &\ln p(x) = \lambda_0 + \sum_{k=1}^n \lambda_k f_k(x) - 1\nn\\
+    &p(x) = \exp\left(\lambda_0 + \sum_{k=1}^n \lambda_k f_k(x) - 1\right)\label{eq:max_ent_dist}
+\end{align}
+Next, the Lagrange multipliers $\lambda_0, \lambda_1, \ldots, \lambda_n$ is determined from constraints \eqref{eq:max_entropy_op.b} and \eqref{eq:max_entropy_op.c}. Starting from \eqref{eq:max_entropy_op.b}, we can derive $\lambda_0$ as follows.
+\begin{align}
+    &\int \exp\left(\lambda_0 + \sum_{k=1}^n \lambda_k f_k(x) - 1\right) \dx = 1 \nn \\
+    &e^{\lambda_0 - 1} \int \exp\left(\sum_{k=1}^n \lambda_k f_k(x) - 1\right)\dx = 1\nn\\
+    & \lambda_0 - 1 + \ln \int \exp\left(\sum_{k=1}^n \lambda_k f_k(x) \right)\dx = 0\nn\\
+    & \lambda_0 = 1 - \ln \int \exp\left(\sum_{k=1}^n \lambda_k f_k(x) \right)\dx\label{eq:max_ent_lambda0}
+\end{align}
 
-% Entropy is a measure of the randomness or uncertainty in a probability distribution. In the context of RL, it quantifies how 'random' the policy is. The entropy of a policy $\pi$ is defined as:
-
-% \[
-% H(\pi) = -\sum_{s}\sum_{a} \pi(a|s) \cdot \log(\pi(a|s))
-% \]
-
-% Intuitively, higher entropy policies are more exploratory and distribute their probability mass more evenly across actions.
-
-% \subsection{Objective Function with Maximum Entropy}
-
-% The goal in Maximum Entropy Reinforcement Learning is to find a policy that not only maximizes expected rewards but also maximizes entropy. This is done by optimizing the following objective function:
-
-% \[
-% J(\pi) = \sum_{s}\sum_{a} \pi(a|s) \cdot [Q(s, a) - \alpha \cdot H(\pi)]
-% \]
-
-% Here, $Q(s, a)$ represents the expected cumulative reward of taking action 'a' in state 's', which can be estimated using techniques like Q-learning or policy gradient methods. $\alpha$ is a hyperparameter that controls the trade-off between maximizing rewards and maximizing entropy. A higher $\alpha$ encourages more exploratory behavior.
-
-% \subsection{Maximum Entropy Inverse Reinforcement Learning (MaxEnt IRL)}
-
-% Maximum Entropy Inverse Reinforcement Learning (MaxEnt IRL) is an extension of the MaxEnt framework used for solving the inverse reinforcement learning problem. In MaxEnt IRL, the goal is to infer the underlying reward function of an expert demonstrator from observed behavior. The key idea is to find a reward function such that the expert's behavior is optimal under the derived policy.
-
-% \subsubsection{Objective Function in MaxEnt IRL}
-
-% In MaxEnt IRL, the objective function to be optimized is as follows:
-
-% \[
-% \begin{aligned}
-% & \max_{R} \sum_{t=0}^{T}\left(\sum_{a}\pi^{\ast}(a|s_t) \cdot R(s_t, a) - \alpha \cdot H(\pi^{\ast})\right) \\
-% & \text{subject to:} \quad \pi^{\ast} = \text{argmax}_{\pi} \sum_{t=0}^{T}\left(\sum_{a}\pi(a|s_t) \cdot R(s_t, a) - \alpha \cdot H(\pi)\right)
-% \end{aligned}
-% \]
-
-% Here, $R$ represents the reward function to be learned, $\pi^{\ast}$ is the expert's policy, and $\pi$ is the policy under consideration. The optimization seeks to find a reward function $R$ that aligns with the expert's behavior while maximizing entropy to allow for multiple solutions.
-
-% \subsection{References}
-
-% Inverse reinforcement learning aims to recover the reward function of an expert policy demonstrator. The maximum entropy principle proposes to find the reward function that maximizes the entropy of the induced trajectory distribution, subject to feature matching constraints.
-
-% Let $S$ be the state space, $A$ the action space, $\rho_\pi(s)$ the discounted state visitation frequencies under policy $\pi$, and $f(s,a)$ the feature vector. The feature matching constraints are:
-% \begin{align*}  
-% \mathbb{E}_{\rho_{\pi_E}}[f(s,a)] = \mathbb{E}_{\rho_\pi}[f(s,a)],
-% \end{align*}
-% where $\pi_E$ is the expert policy.
-
-% The trajectory distribution induced by a policy $\pi$ is $p_\pi(\tau) = p(s_0)\prod_{t=0}^{T-1} p(s_{t+1}|s_t,a_t)\pi(a_t|s_t)$. The entropy of this distribution is $H(\pi) = -\sum_\tau p_\pi(\tau)\log p_\pi(\tau)$.
-
-% The maximum entropy inverse RL problem is:
-% \begin{align*}
-% &\max_\pi H(\pi)\\  
-% &\text{s.t. } \mathbb{E}_{\rho_{\pi_E}}[f(s,a)] = \mathbb{E}_{\rho_\pi}[f(s,a)]
-% \end{align*}
-
-% The paper shows that the optimal $\pi^*$ is given by the maximum entropy distribution over trajectories
-% \begin{align*}
-% p^*(\tau) = \frac{1}{Z}\exp(\theta^T f(\tau)), 
-% \end{align*}
-% where $Z$ is the partition function and $\theta$ are the dual variables.
-
-% The optimal policy $\pi^*$ is the maximum entropy policy induced by the reward function $R(s,a) = \theta^T f(s,a)$. The dual variables $\theta$ are found by maximizing the dual function 
-% \begin{align*}
-% g(\theta) = H(\pi^*) + \theta^T\mathbb{E}_{\rho_{\pi_E}}[f(s,a)].
-% \end{align*}
-
-% Let me know if you need any clarification or have additional questions!
-
-% \begin{enumerate}
-%   \item Ziebart, B. D., Maas, A. L., Bagnell, J. A., & Dey, A. K. (2008). Maximum entropy inverse reinforcement learning. In Proceedings of the 23rd national conference on artificial intelligence (pp. 1433-1438).
-%   \item Haarnoja, T., Tang, H., Abbeel, P., & Levine, S. (2017). Reinforcement learning with deep energy-based policies. In Proceedings of the 34th International Conference on Machine Learning.
-% \end{enumerate}
-
-% \end{document}
+Substituting the expression for \(\lambda_0\) from~\eqref{eq:max_ent_lambda0} into \eqref{eq:max_ent_dist} yields the final solution for $p(x)$, where the remaining Lagrange multipliers \(\lambda_1, \ldots, \lambda_n\) can be determined using~\eqref{eq:max_entropy_op.c}.
+\begin{align*}
+    p(x) = \frac{\exp\left( \sum_{k=1}^n \lambda_k f_k(x) \right)}{\int \exp\left(\sum_{k=1}^n \lambda_k f_k(x)\right)\dx}.
+\end{align*}
+\end{tcolorbox}
 
 \newpage
 \bibliographystyle{elsarticle-num} 
